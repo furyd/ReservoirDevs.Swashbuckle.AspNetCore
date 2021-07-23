@@ -29,7 +29,7 @@ namespace Swashbuckle.AspNetCore.Cli
             runner.SubCommand("tofile", "retrieves Swagger from a startup assembly, and writes to file ", c =>
             {
                 c.Argument("startupassembly", "relative path to the application's startup assembly");
-                c.Argument("swaggerdoc", "name of the swagger doc you want to retrieve, as configured in your startup class");
+                c.Option("--swaggerdoc", "name of the swagger doc you want to retrieve, as configured in your startup class");
                 c.Option("--output", "relative path where the Swagger will be output, defaults to stdout");
                 c.Option("--host", "a specific host to include in the Swagger output");
                 c.Option("--basepath", "a specific basePath to include in the Swagger output");
@@ -70,7 +70,7 @@ namespace Swashbuckle.AspNetCore.Cli
             runner.SubCommand("_tofile", "", c =>
             {
                 c.Argument("startupassembly", "");
-                c.Argument("swaggerdoc", "");
+                c.Option("--swaggerdoc", "");
                 c.Option("--output", "");
                 c.Option("--host", "");
                 c.Option("--basepath", "");
@@ -88,7 +88,7 @@ namespace Swashbuckle.AspNetCore.Cli
                     // 3) Retrieve Swagger via configured provider
                     var swaggerProvider = serviceProvider.GetRequiredService<ISwaggerProvider>();
                     var swagger = swaggerProvider.GetSwagger(
-                        namedArgs["swaggerdoc"],
+                        namedArgs["--swaggerdoc"],
                         namedArgs.ContainsKey("--host") ? namedArgs["--host"] : null,
                         namedArgs.ContainsKey("--basepath") ? namedArgs["--basepath"] : null);
 
