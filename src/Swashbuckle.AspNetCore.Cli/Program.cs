@@ -114,9 +114,21 @@ namespace Swashbuckle.AspNetCore.Cli
                             namedArgs.ContainsKey("--basepath") ? namedArgs["--basepath"] : null);
 
                         // 4) Serialize to specified output location or stdout
-                        var outputPath = namedArgs.ContainsKey("--output")
-                            ? Path.Combine(Directory.GetCurrentDirectory(), namedArgs["--output"])
-                            : null;
+                        string outputPath = null;
+
+                        if (namedArgs.ContainsKey("--output") && !versionOutput)
+                        {
+                            outputPath = Path.Combine(Directory.GetCurrentDirectory(), namedArgs["--output"]);
+                        }
+
+                        if (namedArgs.ContainsKey("--output") && versionOutput)
+                        {
+                            var suffixStart = namedArgs["--output"].LastIndexOf(".", StringComparison.InvariantCultureIgnoreCase);
+
+                            var outputName = suffixStart < 0 ? $"{namedArgs["--output"]}{swaggerdoc}" : namedArgs["--output"].Insert(suffixStart, $".{swaggerdoc}");
+
+                            outputPath = Path.Combine(Directory.GetCurrentDirectory(), outputName);
+                        }
 
                         using (var streamWriter = (outputPath != null ? File.CreateText(outputPath) : Console.Out))
                         {
