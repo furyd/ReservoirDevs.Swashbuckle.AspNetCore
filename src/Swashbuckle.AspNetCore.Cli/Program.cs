@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Diagnostics;
 using System.IO;
@@ -9,6 +10,7 @@ using Microsoft.OpenApi.Writers;
 using Swashbuckle.AspNetCore.Swagger;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Hosting;
 
 namespace Swashbuckle.AspNetCore.Cli
@@ -85,33 +87,53 @@ namespace Swashbuckle.AspNetCore.Cli
                     // 2) Build a service container that's based on the startup assembly
                     var serviceProvider = GetServiceProvider(startupAssembly);
 
-                    // 3) Retrieve Swagger via configured provider
-                    var swaggerProvider = serviceProvider.GetRequiredService<ISwaggerProvider>();
-                    var swagger = swaggerProvider.GetSwagger(
-                        namedArgs["--swaggerdoc"],
-                        namedArgs.ContainsKey("--host") ? namedArgs["--host"] : null,
-                        namedArgs.ContainsKey("--basepath") ? namedArgs["--basepath"] : null);
+                    var swaggerdocs = new List<string>();
+                    var versionOutput = false;
 
-                    // 4) Serialize to specified output location or stdout
-                    var outputPath = namedArgs.ContainsKey("--output")
-                        ? Path.Combine(Directory.GetCurrentDirectory(), namedArgs["--output"])
-                        : null;
-
-                    using (var streamWriter = (outputPath != null ? File.CreateText(outputPath) : Console.Out))
+                    if (namedArgs.ContainsKey("--swaggerdoc") && !string.IsNullOrWhiteSpace(namedArgs["--swaggerdoc"]))
                     {
-                        IOpenApiWriter writer;
-                        if (namedArgs.ContainsKey("--yaml"))
-                            writer = new OpenApiYamlWriter(streamWriter);
-                        else
-                            writer = new OpenApiJsonWriter(streamWriter);
+                        Console.WriteLine($"Version defined: {namedArgs["--swaggerdoc"]}");
+                        swaggerdocs.Add(namedArgs["--swaggerdoc"]);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Version not defined, extract from IApiVersionDescriptionProvider");
+                        var provider = serviceProvider.GetRequiredService<IApiVersionDescriptionProvider>();
+                        swaggerdocs.AddRange(provider.ApiVersionDescriptions.Select(item => item.GroupName));
+                        versionOutput = true;
+                    }
 
-                        if (namedArgs.ContainsKey("--serializeasv2"))
-                            swagger.SerializeAsV2(writer);
-                        else
-                            swagger.SerializeAsV3(writer);
+                    // 3) Retrieve Swagger via configured provider
 
-                        if (outputPath != null)
-                            Console.WriteLine($"Swagger JSON/YAML succesfully written to {outputPath}");
+                    foreach (var swaggerdoc in swaggerdocs)
+                    {
+                        var swaggerProvider = serviceProvider.GetRequiredService<ISwaggerProvider>();
+                        var swagger = swaggerProvider.GetSwagger(
+                            swaggerdoc,
+                            namedArgs.ContainsKey("--host") ? namedArgs["--host"] : null,
+                            namedArgs.ContainsKey("--basepath") ? namedArgs["--basepath"] : null);
+
+                        // 4) Serialize to specified output location or stdout
+                        var outputPath = namedArgs.ContainsKey("--output")
+                            ? Path.Combine(Directory.GetCurrentDirectory(), namedArgs["--output"])
+                            : null;
+
+                        using (var streamWriter = (outputPath != null ? File.CreateText(outputPath) : Console.Out))
+                        {
+                            IOpenApiWriter writer;
+                            if (namedArgs.ContainsKey("--yaml"))
+                                writer = new OpenApiYamlWriter(streamWriter);
+                            else
+                                writer = new OpenApiJsonWriter(streamWriter);
+
+                            if (namedArgs.ContainsKey("--serializeasv2"))
+                                swagger.SerializeAsV2(writer);
+                            else
+                                swagger.SerializeAsV3(writer);
+
+                            if (outputPath != null)
+                                Console.WriteLine($"Swagger JSON/YAML succesfully written to {outputPath}");
+                        }
                     }
 
                     return 0;
