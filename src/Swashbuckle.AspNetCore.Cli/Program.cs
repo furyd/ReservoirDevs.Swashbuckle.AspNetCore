@@ -193,6 +193,11 @@ namespace Swashbuckle.AspNetCore.Cli
 
         private static IServiceProvider GetServiceProvider(Assembly startupAssembly)
         {
+            if (startupAssembly == null)
+            {
+                throw new ArgumentNullException(nameof(startupAssembly));
+            }
+
             if (TryGetCustomHost(startupAssembly, "SwaggerHostFactory", "CreateHost", out IHost host))
             {
                 return host.Services;
