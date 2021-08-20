@@ -58,7 +58,7 @@ namespace Swashbuckle.AspNetCore.Cli
                         EscapePath(runtimeConfig),
                         EscapePath(typeof(Program).GetTypeInfo().Assembly.Location),
                         commandName,
-                        string.Join(" ", subProcessArguments.Select(x => EscapePath(x)))
+                        string.Join(" ", subProcessArguments.Select(EscapePath))
                     );
 
                     var subProcess = Process.Start("dotnet", subProcessCommandLine);
