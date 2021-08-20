@@ -63,6 +63,11 @@ namespace Swashbuckle.AspNetCore.Cli
 
                     var subProcess = Process.Start("dotnet", subProcessCommandLine);
 
+                    if (subProcess == null)
+                    {
+                        throw new Exception("call to dotnet returned null");
+                    }
+
                     subProcess.WaitForExit();
                     return subProcess.ExitCode;
                 });
