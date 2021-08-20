@@ -132,24 +132,15 @@ namespace Swashbuckle.AspNetCore.Cli
 
                             var outputName = suffixStart < 0 ? $"{namedArgs["--output"]}{swaggerdoc}" : namedArgs["--output"].Insert(suffixStart, $".{swaggerdoc}");
 
+                        if (namedArgs.ContainsKey("--yaml"))
+                        {
+                            Output<OpenApiYamlWriter>(outputPath, namedArgs.ContainsKey("--serializeasv2"), swagger, swaggerdoc, "yaml");
                             outputPath = Path.Combine(Directory.GetCurrentDirectory(), outputName);
                         }
 
-                        using (var streamWriter = (outputPath != null ? File.CreateText(outputPath) : Console.Out))
+                        if (namedArgs.ContainsKey("--json"))
                         {
-                            IOpenApiWriter writer;
-                            if (namedArgs.ContainsKey("--yaml"))
-                                writer = new OpenApiYamlWriter(streamWriter);
-                            else
-                                writer = new OpenApiJsonWriter(streamWriter);
-
-                            if (namedArgs.ContainsKey("--serializeasv2"))
-                                swagger.SerializeAsV2(writer);
-                            else
-                                swagger.SerializeAsV3(writer);
-
-                            if (outputPath != null)
-                                Console.WriteLine($"Swagger JSON/YAML succesfully written to {outputPath}");
+                            Output<OpenApiJsonWriter>(outputPath, namedArgs.ContainsKey("--serializeasv2"), swagger, swaggerdoc, "json");
                         }
                     }
 
