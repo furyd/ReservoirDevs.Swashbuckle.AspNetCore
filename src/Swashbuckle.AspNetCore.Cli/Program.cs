@@ -13,6 +13,8 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Cli.Settings;
+using System.Text.Json;
 
 namespace Swashbuckle.AspNetCore.Cli
 {
@@ -31,24 +33,22 @@ namespace Swashbuckle.AspNetCore.Cli
             // > dotnet swagger tofile ...
             runner.SubCommand("tofile", "retrieves Swagger from a startup assembly, and writes to file ", c =>
             {
-                c.Argument("startupassembly", "relative path to the application's startup assembly");
-                c.Option("--swaggerdoc", "name of the swagger doc you want to retrieve, as configured in your startup class");
-                c.Option("--output", "relative path where the Swagger will be output, defaults to stdout");
-                c.Option("--host", "a specific host to include in the Swagger output");
-                c.Option("--basepath", "a specific basePath to include in the Swagger output");
-                c.Option("--serializeasv2", "output Swagger in the V2 format rather than V3", true);
-                c.Option("--json", "exports swagger in a json format", true);
-                c.Option("--yaml", "exports swagger in a yaml format", true);
+                c.Argument("configurationfile", "Configuration file for the settings");
                 c.OnRun((namedArgs) =>
                 {
-                    if (!File.Exists(namedArgs["startupassembly"]))
+                    if (!File.Exists(namedArgs["configurationfile"]))
                     {
-                        throw new FileNotFoundException(namedArgs["startupassembly"]);
+                        throw new FileNotFoundException(namedArgs["configurationfile"]);
                     }
 
+                    var json = File.ReadAllText(namedArgs["configurationfile"]);
+                    var configurationSettings = JsonSerializer.Deserialize<ConfigurationSettings>(json);
 
-                    var depsFile = namedArgs["startupassembly"].Replace(".dll", ".deps.json");
-                    var runtimeConfig = namedArgs["startupassembly"].Replace(".dll", ".runtimeconfig.json");
+                    if (!File.Exists(configurationSettings.Assembly))
+                    {
+                        throw new FileNotFoundException(configurationSettings.Assembly);
+                    }
+
                     var commandName = args[0];
 
                     var subProcessArguments = new string[args.Length - 1];
@@ -59,11 +59,11 @@ namespace Swashbuckle.AspNetCore.Cli
 
                     var subProcessCommandLine = string.Format(
                         "exec --depsfile {0} --runtimeconfig {1} {2} _{3} {4}", // note the underscore prepended to the command name
-                        EscapePath(depsFile),
-                        EscapePath(runtimeConfig),
+                        EscapePath(configurationSettings.DepsFile),
+                        EscapePath(configurationSettings.RuntimeConfig),
                         EscapePath(typeof(Program).GetTypeInfo().Assembly.Location),
                         commandName,
-                        string.Join(" ", subProcessArguments.Select(EscapePath))
+                        EscapePath(args[1])
                     );
 
                     var subProcess = Process.Start("dotnet", subProcessCommandLine);
@@ -81,28 +81,26 @@ namespace Swashbuckle.AspNetCore.Cli
             // > dotnet swagger _tofile ... (* should only be invoked via "dotnet exec")
             runner.SubCommand("_tofile", "", c =>
             {
-                c.Argument("startupassembly", "");
-                c.Option("--swaggerdoc", "");
-                c.Option("--output", "");
-                c.Option("--host", "");
-                c.Option("--basepath", "");
-                c.Option("--serializeasv2", "", true);
-                c.Option("--yaml", "", true);
-                c.Option("--json", "", true);
+                c.Argument("configurationfile", "");
                 c.OnRun((namedArgs) =>
                 {
-                    // 1) Configure host with provided startupassembly
-                    var startupAssembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.Combine(Directory.GetCurrentDirectory(), namedArgs["startupassembly"]));
+                    // 1) Bind configuration settings
+                    var json = File.ReadAllText(namedArgs["configurationfile"]);
+                    var configurationSettings = JsonSerializer.Deserialize<ConfigurationSettings>(json);
 
-                    // 2) Build a service container that's based on the startup assembly
+                    // 2) Configure host with provided startupassembly
+                    var startupAssembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(configurationSettings.Assembly);
+
+                    // 3) Build a service container that's based on the startup assembly
                     var serviceProvider = GetServiceProvider(startupAssembly);
 
+                    // 4) Populate a list of versions
                     var swaggerdocs = new List<string>();
 
-                    if (namedArgs.ContainsKey("--swaggerdoc") && !string.IsNullOrWhiteSpace(namedArgs["--swaggerdoc"]))
+                    if (!configurationSettings.LoopThroughVersions)
                     {
-                        Console.WriteLine($"Version defined: {namedArgs["--swaggerdoc"]}");
-                        swaggerdocs.Add(namedArgs["--swaggerdoc"]);
+                        Console.WriteLine($"Version defined: {configurationSettings.SwaggerDoc}");
+                        swaggerdocs.Add(configurationSettings.SwaggerDoc);
                     }
                     else
                     {
@@ -111,38 +109,37 @@ namespace Swashbuckle.AspNetCore.Cli
                         swaggerdocs.AddRange(provider.ApiVersionDescriptions.Select(item => item.GroupName));
                     }
 
-                    // 3) Retrieve Swagger via configured provider
-
+                    // 5) Retrieve Swagger via configured provider
                     foreach (var swaggerdoc in swaggerdocs)
                     {
                         var swaggerProvider = serviceProvider.GetRequiredService<ISwaggerProvider>();
                         var swagger = swaggerProvider.GetSwagger(
                             swaggerdoc,
-                            namedArgs.ContainsKey("--host") ? namedArgs["--host"] : null,
-                            namedArgs.ContainsKey("--basepath") ? namedArgs["--basepath"] : null);
+                            configurationSettings.HasHost ? configurationSettings.Host : null,
+                            configurationSettings.HasBasePath ? configurationSettings.BasePath : null);
 
-                        // 4) Serialize to specified output location or stdout
+                        // 6) Serialize to specified output location or stdout
                         string outputPath = null;
 
-                        if (namedArgs.ContainsKey("--output") && !Directory.Exists(namedArgs["--output"]))
+                        if (configurationSettings.HasOutput && !Directory.Exists(configurationSettings.Output))
                         {
-                            throw new DirectoryNotFoundException($"{namedArgs["--output"]} does not exist");
+                            throw new DirectoryNotFoundException($"{configurationSettings.Output} does not exist");
                         }
 
-                        if (namedArgs.ContainsKey("--output"))
+                        if (configurationSettings.HasOutput)
                         {
-                            outputPath = Path.Join(namedArgs["--output"]);
+                            outputPath = Path.Join(configurationSettings.Output);
                             Console.WriteLine($"Path: {outputPath}");
                         }
 
-                        if (namedArgs.ContainsKey("--yaml"))
+                        if (configurationSettings.OutputYaml)
                         {
-                            Output<OpenApiYamlWriter>(outputPath, namedArgs.ContainsKey("--serializeasv2"), swagger, swaggerdoc, "yaml");
+                            Output<OpenApiYamlWriter>(outputPath, configurationSettings.SerializeAsV2, swagger, swaggerdoc, "yaml");
                         }
 
-                        if (namedArgs.ContainsKey("--json"))
+                        if (configurationSettings.OutputJson)
                         {
-                            Output<OpenApiJsonWriter>(outputPath, namedArgs.ContainsKey("--serializeasv2"), swagger, swaggerdoc, "json");
+                            Output<OpenApiJsonWriter>(outputPath, configurationSettings.SerializeAsV2, swagger, swaggerdoc, "json");
                         }
                     }
 
