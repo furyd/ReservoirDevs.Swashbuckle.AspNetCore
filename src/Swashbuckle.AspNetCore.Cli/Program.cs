@@ -208,8 +208,11 @@ namespace Swashbuckle.AspNetCore.Cli
                 return webHost.Services;
             }
 
+            var assemblyFolder = Path.GetDirectoryName(startupAssembly.Location);
+
             return WebHost.CreateDefaultBuilder()
                .UseStartup(startupAssembly.GetName().Name)
+               .UseContentRoot(assemblyFolder)
                .Build()
                .Services;
         }
