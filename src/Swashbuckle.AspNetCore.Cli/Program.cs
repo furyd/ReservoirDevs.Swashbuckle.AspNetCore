@@ -88,8 +88,7 @@ namespace Swashbuckle.AspNetCore.Cli
                 c.OnRun((namedArgs) =>
                 {
                     // 1) Configure host with provided startupassembly
-                    var startupAssembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(
-                        Path.Combine(Directory.GetCurrentDirectory(), namedArgs["startupassembly"]));
+                    var startupAssembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.Combine(Directory.GetCurrentDirectory(), namedArgs["startupassembly"]));
 
                     // 2) Build a service container that's based on the startup assembly
                     var serviceProvider = GetServiceProvider(startupAssembly);
