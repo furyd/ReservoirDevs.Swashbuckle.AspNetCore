@@ -36,6 +36,7 @@ namespace Swashbuckle.AspNetCore.Cli
                 c.Option("--host", "a specific host to include in the Swagger output");
                 c.Option("--basepath", "a specific basePath to include in the Swagger output");
                 c.Option("--serializeasv2", "output Swagger in the V2 format rather than V3", true);
+                c.Option("--json", "exports swagger in a json format", true);
                 c.Option("--yaml", "exports swagger in a yaml format", true);
                 c.OnRun((namedArgs) =>
                 {
@@ -83,6 +84,7 @@ namespace Swashbuckle.AspNetCore.Cli
                 c.Option("--basepath", "");
                 c.Option("--serializeasv2", "", true);
                 c.Option("--yaml", "", true);
+                c.Option("--json", "", true);
                 c.OnRun((namedArgs) =>
                 {
                     // 1) Configure host with provided startupassembly
