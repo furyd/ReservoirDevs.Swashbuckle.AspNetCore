@@ -160,6 +160,30 @@ namespace Swashbuckle.AspNetCore.Cli
             return runner.Run(args);
         }
 
+        private static string GenerateFileName(string path, string version, string suffix) => Path.Combine(path, $"{version}.{suffix}");
+
+        private static void Output<TOpenApiWriter>(string outputPath, bool serializeAsV2, OpenApiDocument openApiDocument, string swaggerdoc, string suffix) where TOpenApiWriter : IOpenApiWriter
+        {
+            using (var streamWriter = outputPath != null ? File.CreateText(GenerateFileName(outputPath, swaggerdoc, suffix)) : Console.Out)
+            {
+                var writer = (TOpenApiWriter)Activator.CreateInstance(typeof(TOpenApiWriter), streamWriter);
+
+                if (serializeAsV2)
+                {
+                    openApiDocument.SerializeAsV2(writer);
+                }
+                else
+                {
+                    openApiDocument.SerializeAsV3(writer);
+                }
+
+                if (outputPath != null)
+                {
+                    Console.WriteLine($"Swagger JSON/YAML succesfully written to {GenerateFileName(outputPath, swaggerdoc, suffix)}");
+                }
+            }
+        }
+
         private static string EscapePath(string path)
         {
             return path.Contains(" ")
