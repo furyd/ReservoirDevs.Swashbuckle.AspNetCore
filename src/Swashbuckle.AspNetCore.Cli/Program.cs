@@ -94,7 +94,6 @@ namespace Swashbuckle.AspNetCore.Cli
                     var serviceProvider = GetServiceProvider(startupAssembly);
 
                     var swaggerdocs = new List<string>();
-                    var versionOutput = false;
 
                     if (namedArgs.ContainsKey("--swaggerdoc") && !string.IsNullOrWhiteSpace(namedArgs["--swaggerdoc"]))
                     {
@@ -106,7 +105,6 @@ namespace Swashbuckle.AspNetCore.Cli
                         Console.WriteLine("Version not defined, extract from IApiVersionDescriptionProvider");
                         var provider = serviceProvider.GetRequiredService<IApiVersionDescriptionProvider>();
                         swaggerdocs.AddRange(provider.ApiVersionDescriptions.Select(item => item.GroupName));
-                        versionOutput = true;
                     }
 
                     // 3) Retrieve Swagger via configured provider
@@ -122,21 +120,20 @@ namespace Swashbuckle.AspNetCore.Cli
                         // 4) Serialize to specified output location or stdout
                         string outputPath = null;
 
-                        if (namedArgs.ContainsKey("--output") && !versionOutput)
+                        if (namedArgs.ContainsKey("--output") && !Directory.Exists(namedArgs["--output"]))
                         {
-                            outputPath = Path.Combine(Directory.GetCurrentDirectory(), namedArgs["--output"]);
+                            throw new DirectoryNotFoundException($"{namedArgs["--output"]} does not exist");
                         }
 
-                        if (namedArgs.ContainsKey("--output") && versionOutput)
+                        if (namedArgs.ContainsKey("--output"))
                         {
-                            var suffixStart = namedArgs["--output"].LastIndexOf(".", StringComparison.InvariantCultureIgnoreCase);
-
-                            var outputName = suffixStart < 0 ? $"{namedArgs["--output"]}{swaggerdoc}" : namedArgs["--output"].Insert(suffixStart, $".{swaggerdoc}");
+                            outputPath = Path.Join(namedArgs["--output"]);
+                            Console.WriteLine($"Path: {outputPath}");
+                        }
 
                         if (namedArgs.ContainsKey("--yaml"))
                         {
                             Output<OpenApiYamlWriter>(outputPath, namedArgs.ContainsKey("--serializeasv2"), swagger, swaggerdoc, "yaml");
-                            outputPath = Path.Combine(Directory.GetCurrentDirectory(), outputName);
                         }
 
                         if (namedArgs.ContainsKey("--json"))
