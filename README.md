@@ -50,6 +50,7 @@ The configuration file takes the following structure:
     "BasePath": "<<OPTIONAL: a specific basePath to include in the Swagger output>>",
     "Host": "<<OPTIONAL: a specific host to include in the Swagger output>>",
     "Output": "<<OPTIONAL: absolute path of the directory to emit the files>>",
+    "ApplicationSettingsDirectory": "<<OPTIONAL: absolute path of the directory where the application settings are stored - defaults to assembly folder>>",
     "SwaggerDoc": "<<OPTIONAL: name of the swagger doc you want to retrieve, as configured in your startup class>>"
 }
 ```
