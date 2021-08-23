@@ -50,7 +50,7 @@ The configuration file takes the following structure:
     "BasePath": "<<OPTIONAL: a specific basePath to include in the Swagger output>>",
     "Host": "<<OPTIONAL: a specific host to include in the Swagger output>>",
     "Output": "<<OPTIONAL: absolute path of the directory to emit the files>>",
-    "ApplicationSettingsDirectory": "<<OPTIONAL: absolute path of the directory where the application settings are stored - defaults to assembly folder>>",
+    "ApplicationSettingsDirectory": "<<OPTIONAL: absolute path of the directory where the application settings are stored>>",
     "SwaggerDoc": "<<OPTIONAL: name of the swagger doc you want to retrieve, as configured in your startup class>>"
 }
 ```
@@ -58,6 +58,8 @@ The configuration file takes the following structure:
 The booleans will default to false.
 
 If SwaggerDoc is null, empty or whitespace, then all available versions from IApiVersionDescriptionProvider will be outputted.
+
+If ApplicationSettingsDirectory is null, empty or whitespace, then it will default to the folder holding the assembly.
 
 Files are outputted as _version_._format_, e.g. v1's JSON will be output as v1.json, YAML, v1.yaml in the directory specified in the Output property, or output to stream if the Output property is not set.
 
