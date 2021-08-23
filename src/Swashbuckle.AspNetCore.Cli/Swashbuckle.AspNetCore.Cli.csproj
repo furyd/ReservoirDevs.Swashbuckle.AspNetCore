@@ -5,9 +5,10 @@
     <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <AssemblyName>reservoir-devs-dotnet-swagger</AssemblyName>
-    <PackageId>Reservoir-Devs.Swashbuckle.AspNetCore.Cli</PackageId>
+    <PackageId>ReservoirDevs.Swashbuckle.AspNetCore.Cli</PackageId>
     <PackAsTool>true</PackAsTool>
-    <ToolCommandName>swagger</ToolCommandName>
+    <ToolCommandName>reservoir-devs-swagger</ToolCommandName>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
     <Authors>Reservoir Devs, dotnet-swagger</Authors>
     <Product>reservoir-devs-dotnet-swagger</Product>
     <Version>1.0.0</Version>
