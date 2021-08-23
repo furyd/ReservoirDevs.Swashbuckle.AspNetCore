@@ -11,10 +11,11 @@
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <Authors>Reservoir Devs, dotnet-swagger</Authors>
     <Product>reservoir-devs-dotnet-swagger</Product>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="10.3.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.1.5" />
   </ItemGroup>

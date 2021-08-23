@@ -15,6 +15,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Cli.Settings;
 using System.Text.Json;
+using FluentValidation;
+using Swashbuckle.AspNetCore.Cli.Validators;
 
 namespace Swashbuckle.AspNetCore.Cli
 {
@@ -43,6 +45,9 @@ namespace Swashbuckle.AspNetCore.Cli
 
                     var json = File.ReadAllText(namedArgs["configurationfile"]);
                     var configurationSettings = JsonSerializer.Deserialize<ConfigurationSettings>(json);
+
+                    var validator = new ConfigurationSettingsValidator();
+                    validator.ValidateAndThrow(configurationSettings);
 
                     if (!File.Exists(configurationSettings.Assembly))
                     {

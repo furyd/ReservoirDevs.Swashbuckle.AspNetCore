@@ -71,4 +71,3 @@ TODO
 ----
 
 - Add a appsettings folder location property
-- Validate the configuration file
