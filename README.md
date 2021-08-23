@@ -9,6 +9,31 @@ Based on the excellent work at [the Swashbuckle.AspNetCore](https://github.com/d
 
 This was forked and updated primarily so that I didn't need to know what versions to use _beforehand_, and just make use of IApiVersionDescriptionProvider instead.
 
+Installation
+------------
+
+### Global
+
+Install the tool from NuGet.
+
+```
+dotnet tool install --global ReservoirDevs.Swashbuckle.AspNetCore.Cli
+```
+
+### Local
+
+First, create a manifest.
+
+```
+dotnet tool manifest
+```
+
+Then install the tool
+
+```
+dotnet tool install ReservoirDevs.Swashbuckle.AspNetCore.Cli
+```
+
 Usage
 -----
 
@@ -34,6 +59,12 @@ The booleans will default to false.
 If SwaggerDoc is null, empty or whitespace, then all available versions from IApiVersionDescriptionProvider will be outputted.
 
 Files are outputted as _version_._format_, e.g. v1's JSON will be output as v1.json, YAML, v1.yaml in the directory specified in the Output property, or output to stream if the Output property is not set.
+
+You then run the tool
+
+```
+dotnet tool run reservoir-devs-swagger tofile <<absolute path to configuration file>>
+```
 
 
 TODO
