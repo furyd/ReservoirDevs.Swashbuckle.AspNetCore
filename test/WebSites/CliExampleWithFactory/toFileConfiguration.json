@@ -1,0 +1,8 @@
+{
+  "Assembly": "#{assembly.name}#",
+  "OutputJson": #{output.json}#,
+  "OutputYaml": #{output.yaml}#,
+  "Output": "#{output.directory}#",
+  "Host": "#{assembly.host}#",
+  "SwaggerDoc": "#{swagger.version}#"
+}

@@ -14,23 +14,93 @@
     <ProjectReference Include="..\..\..\src\Swashbuckle.AspNetCore.Cli\Swashbuckle.AspNetCore.Cli.csproj" />
   </ItemGroup>
 
-  <!--
-    NOTE: In practice, you would install the CLI as a .NET Core Global Tool (i.e. dotnet tool install Swashbuckle.AspNetCore.Cli)
-    and incorporate it into your build process using the commented out target below
-  -->
+  <UsingTask TaskName="ReplaceTokens" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+    <ParameterGroup>
+      <InputFilename ParameterType="System.String" Required="true" />
+      <OutputFilename ParameterType="System.String" Required="true" />
+      <ReplacementItems ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Class" Language="cs">
+        <![CDATA[
+					using System;
+					using Microsoft.Build.Framework;
+					using Microsoft.Build.Utilities;
+					using System.Text.RegularExpressions;
+					using System.IO;
 
-  <!--
-  <Target Name="SwaggerToFile" AfterTargets="AfterBuild">
-    <Exec Command="dotnet swagger tofile &#45;-host http://example.com &#45;-output wwwroot/api-docs/v1/swagger.json &quot;$(TargetPath)&quot; v1" />
+					public class ReplaceTokens: Task
+					{
+						public ITaskItem[] ReplacementItems { get; set; }
+
+						public string InputFilename { get; set; }
+
+						public string OutputFilename { get; set; }
+
+						public override bool Execute(){
+
+							var content = File.ReadAllText(InputFilename);
+
+							Log.LogMessage(MessageImportance.High, content);
+
+							string pattern;
+
+							foreach(var item in ReplacementItems)
+							{
+								pattern = "#{" + item.GetMetadata("propertyName") + "}#";
+								Log.LogMessage(MessageImportance.High, "pattern: {0}", pattern);
+								content = content.Replace(pattern, item.ItemSpec.Replace("\\", "\\\\"));
+							}
+
+							pattern = @"#{\S*}#";
+
+							var regex = new Regex(pattern);
+
+							var matches = regex.Matches(content);
+
+				            foreach (Match match in matches)
+				            {
+				                content = content.Replace(match.Value, "");
+				            }
+
+							Log.LogMessage(MessageImportance.High, content);
+
+							File.WriteAllText(OutputFilename, content);
+
+							return true;
+						}
+					}
+				]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="TransformsConfigurationFile" AfterTargets="Build">
+    <ItemGroup>
+      <ReplacementItems Include="$(ProjectDir)$(OutputPath)$(AssemblyName).dll">
+        <PropertyName>assembly.name</PropertyName>
+      </ReplacementItems>
+      <ReplacementItems Include="true">
+        <PropertyName>output.json</PropertyName>
+      </ReplacementItems>
+      <ReplacementItems Include="false">
+        <PropertyName>output.yaml</PropertyName>
+      </ReplacementItems>
+      <ReplacementItems Include="$(ProjectDir)wwwroot\swagger">
+        <PropertyName>output.directory</PropertyName>
+      </ReplacementItems>
+      <ReplacementItems Include="v1">
+        <PropertyName>swagger.version</PropertyName>
+      </ReplacementItems>
+      <ReplacementItems Include="http://localhost:51071">
+        <PropertyName>assembly.host</PropertyName>
+      </ReplacementItems>
+    </ItemGroup>
+    <ReplaceTokens InputFilename="$(ProjectDir)toFileConfiguration.json" OutputFilename="$(OutputPath)toFileConfiguration.json" ReplacementItems="@(ReplacementItems)" />
   </Target>
-  -->
 
-  <!--
-    HOWEVER ... This example invokes the CLI DLL directly so that its source code can be tested during the Swashbuckle build process
-  -->
-
-  <Target Name="SwaggerToFile" AfterTargets="AfterBuild">
-    <Exec Command="dotnet $(SolutionDir)src\Swashbuckle.AspNetCore.Cli\bin\$(Configuration)\netcoreapp3.0\dotnet-swagger.dll tofile --host http://localhost:57556/ --output wwwroot/swagger/v1/swagger.json $(OutputPath)$(AssemblyName).dll v1" />
+  <Target Name="SwaggerToFile" AfterTargets="TransformsConfigurationFile">
+    <Exec Command="dotnet $(SolutionDir)src\Swashbuckle.AspNetCore.Cli\bin\$(Configuration)\netcoreapp3.1\reservoir-devs-dotnet-swagger.dll tofile $(ProjectDir)$(OutputPath)toFileConfiguration.json" />
   </Target>
 
 </Project>
