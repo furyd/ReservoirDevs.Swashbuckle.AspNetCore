@@ -65,9 +65,3 @@ You then run the tool
 ```
 dotnet tool run reservoir-devs-swagger tofile <<absolute path to configuration file>>
 ```
-
-
-TODO
-----
-
-- Add a appsettings folder location property

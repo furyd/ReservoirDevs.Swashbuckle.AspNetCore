@@ -18,6 +18,8 @@ namespace Swashbuckle.AspNetCore.Cli.Settings
 
         public string Output { get; set; }
 
+        public string ApplicationSettingsDirectory { get; set; }
+
         public string SwaggerDoc { get; set; }
 
         public bool HasHost => !string.IsNullOrWhiteSpace(Host);
@@ -27,6 +29,8 @@ namespace Swashbuckle.AspNetCore.Cli.Settings
         public bool LoopThroughVersions => string.IsNullOrWhiteSpace(SwaggerDoc);
 
         public bool HasOutput => !string.IsNullOrWhiteSpace(Output);
+
+        public bool HasApplicationSettingsDirectory => !string.IsNullOrWhiteSpace(ApplicationSettingsDirectory);
 
         public string DepsFile => Assembly.Replace(".dll", ".deps.json");
 

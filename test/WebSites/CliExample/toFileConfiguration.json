@@ -4,5 +4,6 @@
   "OutputYaml": #{output.yaml}#,
   "Output": "#{output.directory}#",
   "Host": "#{assembly.host}#",
-  "SwaggerDoc": "#{swagger.version}#"
+  "SwaggerDoc": "#{swagger.version}#",
+  "ApplicationSettingsDirectory": "#{assembly.appsettingsFolder}#"
 }

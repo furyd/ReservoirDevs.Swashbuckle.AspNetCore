@@ -97,7 +97,7 @@ namespace Swashbuckle.AspNetCore.Cli
                     var startupAssembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(configurationSettings.Assembly);
 
                     // 3) Build a service container that's based on the startup assembly
-                    var serviceProvider = GetServiceProvider(startupAssembly);
+                    var serviceProvider = GetServiceProvider(startupAssembly, configurationSettings);
 
                     // 4) Populate a list of versions
                     var swaggerdocs = new List<string>();
@@ -186,7 +186,7 @@ namespace Swashbuckle.AspNetCore.Cli
                 : path;
         }
 
-        private static IServiceProvider GetServiceProvider(Assembly startupAssembly)
+        private static IServiceProvider GetServiceProvider(Assembly startupAssembly, ConfigurationSettings configurationSettings)
         {
             if (startupAssembly == null)
             {
@@ -203,11 +203,11 @@ namespace Swashbuckle.AspNetCore.Cli
                 return webHost.Services;
             }
 
-            var assemblyFolder = Path.GetDirectoryName(startupAssembly.Location);
+            var appSettingsFolder = configurationSettings.HasApplicationSettingsDirectory ? configurationSettings.ApplicationSettingsDirectory : Path.GetDirectoryName(startupAssembly.Location);
 
             return WebHost.CreateDefaultBuilder()
                .UseStartup(startupAssembly.GetName().Name)
-               .UseContentRoot(assemblyFolder)
+               .UseContentRoot(appSettingsFolder)
                .Build()
                .Services;
         }

@@ -16,6 +16,9 @@ namespace Swashbuckle.AspNetCore.Cli.Validators
             RuleFor(model => model.Output)
                 .Must(Directory.Exists).WithMessage("Output folder must exist").When(model => !string.IsNullOrWhiteSpace(model.Output));
 
+            RuleFor(model => model.ApplicationSettingsDirectory)
+                .Must(Directory.Exists).WithMessage("Application settings folder must exist").When(model => !string.IsNullOrWhiteSpace(model.ApplicationSettingsDirectory));
+
             RuleFor(model => model.Host)
                 .Must(uri => Uri.TryCreate(uri, UriKind.Absolute, out _)).WithMessage("Host must be a valid URI").When(model => !string.IsNullOrWhiteSpace(model.Host));
         }
