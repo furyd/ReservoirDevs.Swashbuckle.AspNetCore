@@ -19,9 +19,9 @@ The configuration file takes the following structure:
 ```json
 {
     "Assembly": "<<REQUIRED: absolute location of the DLL>>",
-    "OutputJson": true/false,
-    "OutputYaml": true/false,
-    "SerializeAsV2": true/false,
+    "OutputJson": true,
+    "OutputYaml": false,
+    "SerializeAsV2": false,
     "BasePath": "<<OPTIONAL: a specific basePath to include in the Swagger output>>",
     "Host": "<<OPTIONAL: a specific host to include in the Swagger output>>",
     "Output": "<<OPTIONAL: absolute path of the directory to emit the files>>",
@@ -33,7 +33,7 @@ The booleans will default to false.
 
 If SwaggerDoc is null, empty or whitespace, then all available versions from IApiVersionDescriptionProvider will be outputted.
 
-Files are outputted as <<version>>.<<format>>, e.g. v1's JSON will be output as v1.json, YAML, v1.yaml in the directory specified in the Output property, or output to stream if the Output property is not set.
+Files are outputted as _version_._format_, e.g. v1's JSON will be output as v1.json, YAML, v1.yaml in the directory specified in the Output property, or output to stream if the Output property is not set.
 
 
 TODO
